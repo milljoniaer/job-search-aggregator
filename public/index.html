@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Job Portal Aggregator (Client-side)</title>
+    <title>Job Portal Aggregator</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -38,34 +38,16 @@
             <!-- Notice -->
             <div class="mb-6 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4">
                 <p class="text-sm text-amber-100">
-                    <span class="font-semibold">Important:</span> Most job portals block browser requests due to
-                    <span class="font-semibold">CORS</span>.
-                    This page therefore supports an optional <span class="font-semibold">proxy URL</span>.
-                    If you set no proxy, many requests will fail in the browser (that's expected).
+                    <span class="font-semibold">Backend-powered:</span> All job fetching and parsing happens on the server.
+                    The backend aggregates jobs from multiple portals and returns filtered results.
                 </p>
                 <p class="mt-2 text-xs text-amber-100/80">
-                    Safer setup: run a tiny backend proxy (Node/Express, Cloudflare Worker, Vercel function) and set it
-                    below.
+                    No CORS issues! The Express server fetches all data server-side and sends it to the client.
                 </p>
             </div>
 
             <!-- Controls -->
-            <section class="mb-6 grid gap-4 md:grid-cols-3">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <h2 class="text-sm font-semibold">Proxy (optional)</h2>
-                    <p class="mt-1 text-xs text-slate-400">
-                        If your proxy expects a full URL, use: <span
-                            class="font-mono">https://your-proxy/?url=...</span>
-                    </p>
-                    <label class="mt-3 block text-xs text-slate-300">Proxy template</label>
-                    <input id="proxyInput"
-                        class="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
-                        placeholder="Example: https://your-proxy.example/fetch?url={URL}" />
-                    <p class="mt-2 text-xs text-slate-500">
-                        Use <span class="font-mono">{URL}</span> as placeholder.
-                    </p>
-                </div>
-
+            <section class="mb-6 grid gap-4 md:grid-cols-2">
                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <h2 class="text-sm font-semibold">Exclude keywords</h2>
                     <p class="mt-1 text-xs text-slate-400">Case-insensitive "contains" filter on titles.</p>
@@ -93,7 +75,7 @@
 
                     <div class="mt-4 rounded-xl border border-white/10 bg-slate-900/40 p-3">
                         <p class="text-xs text-slate-400">
-                            Tip: open DevTools → Network/Console to see CORS blocks and response types.
+                            Tip: Check the Raw log below to see backend processing details.
                         </p>
                     </div>
                 </div>
@@ -123,41 +105,11 @@
 
     <script>
         // -----------------------------
-        // Translated from your Python
-        // -----------------------------
-        const job_portal_urls = [
-            {
-                name: "Porsche Consulting",
-                url: "https://porsche-beesite-production-gjb.app.beesite.de/search/?data=%7B%22SearchParameters%22%3A%7B%22FirstItem%22%3A1%2C%22CountItem%22%3A0%2C%22MatchedObjectDescriptor%22%3A%5B%22Facet%3APositionLocation.City%22%5D%7D%2C%22SearchCriteria%22%3A%5B%7B%22CriterionName%22%3A%22PublicationChannel.Code%22%2C%22CriterionValue%22%3A%5B%2212%22%5D%7D%2C%7B%22CriterionName%22%3A%22CareerLevel.Code%22%2C%22CriterionValue%22%3A%5B%2212%22%5D%7D%2C%7B%22CriterionName%22%3A%22ParentOrganization%22%2C%22CriterionValue%22%3A%5B%225305%22%5D%7D%5D%2C%22LanguageCode%22%3A%22DE%22%7D",
-            },
-            {
-                name: "MHP - A Porsche Company",
-                url: "https://porsche-beesite-production-gjb-mhp.app.beesite.de/search/?data=%7B%22LanguageCode%22%3A%22DE%22%2C%22SearchParameters%22%3A%7B%22FirstItem%22%3A1%2C%22CountItem%22%3A10%2C%22Sort%22%3A%5B%7B%22Criterion%22%3A%22PublicationStartDate%22%2C%22Direction%22%3A%22DESC%22%7D%5D%2C%22MatchedObjectDescriptor%22%3A%5B%22ID%22%2C%22PositionTitle%22%2C%22PositionURI%22%2C%22PositionShortURI%22%2C%22PositionLocation.CountryName%22%2C%22PositionLocation.CityName%22%2C%22PositionLocation.Longitude%22%2C%22PositionLocation.Latitude%22%2C%22PositionLocation.PostalCode%22%2C%22PositionLocation.StreetName%22%2C%22PositionLocation.BuildingNumber%22%2C%22PositionLocation.Distance%22%2C%22JobCategory.Name%22%2C%22PublicationStartDate%22%2C%22ParentOrganizationName%22%2C%22ParentOrganization%22%2C%22OrganizationShortName%22%2C%22CareerLevel.Name%22%2C%22JobSector.Name%22%2C%22PositionIndustry.Name%22%2C%22PublicationCode%22%2C%22PublicationChannel.Id%22%5D%7D%2C%22SearchCriteria%22%3A%5B%7B%22CriterionName%22%3A%22CareerLevel.Code%22%2C%22CriterionValue%22%3A%5B%2212%22%5D%7D%2C%7B%22CriterionName%22%3A%22PositionLocation.City%22%2C%22CriterionValue%22%3A%5B%2215%22%5D%7D%2C%7B%22CriterionName%22%3A%22PublicationChannel.Code%22%2C%22CriterionValue%22%3A%5B%2288%22%5D%7D%2C%7B%22CriterionName%22%3A%22JobCategory.Code%22%2C%22CriterionValue%22%3A%5B%22%22%5D%7D%2C%7B%22CriterionName%22%3A%22CareerLevel.Code%22%2C%22CriterionValue%22%3A%5B%22%22%5D%7D%2C%7B%22CriterionName%22%3A%22PositionSchedule.Code%22%2C%22CriterionValue%22%3A%5B%22%22%5D%7D%2C%7B%22CriterionName%22%3A%22PositionOfferingType.Code%22%2C%22CriterionValue%22%3A%5B%22%22%5D%7D%2C%7B%22CriterionName%22%3A%22PositionLocation.Country%22%2C%22CriterionValue%22%3A%5B%22%22%5D%7D%2C%7B%22CriterionName%22%3A%22PositionLocation.City%22%2C%22CriterionValue%22%3A%5B%22%22%5D%7D%5D%7D",
-            },
-            {
-                name: "BCG Platinion - Graduates",
-                url: "https://platinion.avature.net/CareersDeEn/SearchJobs/?3_31_3=%5B%22144951%22%5D&3_25_3=%5B%2236510%22%5D",
-            },
-            {
-                name: "BCG Platinion - Young Professional",
-                url: "https://platinion.avature.net/CareersDeEn/SearchJobs/?3_31_3=%5B%22144951%22%5D&3_25_3=%5B%2236378%22%5D",
-            },
-            {
-                name: "Siemens Advarta",
-                url: "https://jobs.siemens.com/de_DE/externaljobs/SearchJobs/?42386=%5B812132%5D&42386_format=17546&42387=%5B813141%5D&42387_format=17547&42390=%5B102155%2C102156%5D&42390_format=17550&42394=32346191&42394_format=17553&listFilterMode=1&folderRecordsPerPage=6&",
-            },
-            {
-                name: "McKinsey",
-                url: "https://gateway.mckinsey.com/apigw-x0cceuow60/v1/api/jobs/search?pageSize=20&start=1&cities=Munich&interest=Analytics,Consulting,Digital,Implementation,Research&functions=Technology&lang=de",
-            },
-        ];
-
-        const default_exclude_keywords = ["Senior ", "Lead ", "Security", "Experienced ", "Expert ", "Praktikum", "Intern"];
-
-        // -----------------------------
-        // UI helpers
+        // UI helpers and backend communication
         // -----------------------------
         const $ = (id) => document.getElementById(id);
+
+        const default_exclude_keywords = ["Senior ", "Lead ", "Security", "Experienced ", "Expert ", "Praktikum", "Intern"];
 
         function logLine(msg) {
             const el = $("log");
@@ -182,112 +134,11 @@
                 .replaceAll("'", "&#039;");
         }
 
-        function normalizeLink(baseUrl, link) {
-            if (!link) return null;
-            try {
-                return new URL(link, baseUrl).toString();
-            } catch {
-                return link;
-            }
-        }
-
-        // Proxy template: "...{URL}..."
-        function applyProxyIfAny(url) {
-            const tpl = $("proxyInput").value.trim();
-            if (!tpl) return url;
-            return tpl.replaceAll("{URL}", encodeURIComponent(url));
-        }
-
         function getExcludeKeywords() {
             const raw = $("excludeInput").value
                 .split("\n")
                 .filter(Boolean);
             return raw.length ? raw : default_exclude_keywords;
-        }
-
-        function passesFilter(title, excludeKeywords) {
-            const t = (title || "").toLowerCase();
-            return !excludeKeywords.some((kw) => t.includes(kw.toLowerCase()));
-        }
-
-        function contentTypeLooksJson(ct) {
-            if (!ct) return false;
-            return ct.toLowerCase().includes("application/json") || ct.toLowerCase().includes("+json");
-        }
-
-        // -----------------------------
-        // Parsing: JSON
-        // Mirrors your Python logic (with a few safe fallbacks)
-        // -----------------------------
-        function parseJobsFromJson(data) {
-            const jobs = [];
-
-            const searchResult = data?.SearchResult ?? null;
-            const searchResults =
-                searchResult?.SearchResultItems ??
-                data?.docs ??
-                data?.results ??
-                data?.items ??
-                data?.SearchResultItems ??
-                [];
-
-            if (!Array.isArray(searchResults)) return jobs;
-
-            for (const obj of searchResults) {
-                const job = obj?.MatchedObjectDescriptor ?? obj ?? {};
-
-                const title = job?.PositionTitle ?? job?.title ?? job?.jobTitle ?? "N/A";
-
-                // Your Python did: ", ".join([j.get("CityName","N/A") for j in job.get("PositionLocation", {})])
-                // In reality PositionLocation might be object OR array. We handle both.
-                let location = "N/A";
-                const posLoc = job?.PositionLocation ?? job?.positionLocation ?? job?.locations;
-                if (Array.isArray(posLoc)) {
-                    const cities = posLoc.map((j) => j?.CityName?.Name ?? j?.CityName ?? j?.City ?? j?.city ?? "N/A");
-                    location = cities.join(", ");
-                } else if (posLoc && typeof posLoc === "object") {
-                    location =
-                        posLoc?.CityName?.Name ??
-                        posLoc?.CityName ??
-                        posLoc?.City ??
-                        posLoc?.city ??
-                        posLoc?.PositionLocation?.CityName ??
-                        "N/A";
-                }
-
-                const link = job?.PositionURI ?? job?.jobApplyURL ?? job?.url ?? job?.applyUrl ?? "N/A";
-
-                jobs.push({ title, location, link });
-            }
-
-            return jobs;
-        }
-
-        // -----------------------------
-        // Parsing: HTML (PyQuery → DOMParser + querySelectorAll)
-        // Matches your selectors: ".listSingleColumnItemTitle, .article__header"
-        // -----------------------------
-        function parseJobsFromHtml(htmlText, baseUrl) {
-            const jobs = [];
-            const doc = new DOMParser().parseFromString(htmlText, "text/html");
-
-            const jobNodes = doc.querySelectorAll(".listSingleColumnItemTitle, .article__header");
-
-            jobNodes.forEach((node) => {
-                const a = node.querySelector("a");
-                const title = a?.textContent?.trim() || node.textContent?.trim() || "N/A";
-                const href = a?.getAttribute("href") || null;
-
-                // Your Python looked for ".list-item-jobCity" inside the job item.
-                const locNode = node.querySelector(".list-item-jobCity");
-                const location = locNode?.textContent?.trim() || "Munich";
-
-                const link = normalizeLink(baseUrl, href);
-
-                jobs.push({ title, location, link: link || "N/A" });
-            });
-
-            return jobs;
         }
 
         // -----------------------------
@@ -365,100 +216,59 @@
         }
 
         // -----------------------------
-        // Fetch + detect JSON/HTML + parse + filter
-        // -----------------------------
-        async function fetchPortal(portal, excludeKeywords) {
-            const proxiedUrl = applyProxyIfAny(portal.url);
-            logLine(`\n=== ${portal.name} ===`);
-            logLine(`GET ${proxiedUrl}`);
-
-            const res = await fetch(proxiedUrl, {
-                method: "GET",
-                // Many portals will block cross-origin. Proxy recommended.
-                // mode: "cors" is default; keep it.
-                headers: {
-                    "Accept": "application/json,text/html;q=0.9,*/*;q=0.8",
-                },
-            });
-
-            logLine(`Status: ${res.status} ${res.statusText}`);
-
-            if (!res.ok) {
-                throw new Error(`Failed to retrieve data. HTTP ${res.status} ${res.statusText}`);
-            }
-
-            const ct = res.headers.get("content-type") || "";
-            logLine(`Content-Type: ${ct}`);
-
-            let jobsParsed = [];
-
-            if (contentTypeLooksJson(ct)) {
-                const data = await res.json();
-                jobsParsed = parseJobsFromJson(data);
-            } else {
-                const text = await res.text();
-
-                // Some APIs forget content-type; best-effort JSON sniff:
-                const trimmed = text.trim();
-                if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-                    try {
-                        const data = JSON.parse(trimmed);
-                        jobsParsed = parseJobsFromJson(data);
-                    } catch {
-                        jobsParsed = parseJobsFromHtml(text, portal.url);
-                    }
-                } else {
-                    jobsParsed = parseJobsFromHtml(text, portal.url);
-                }
-            }
-
-            console.log("Parsed jobs:", jobsParsed);
-            console.log("Applying exclude keywords:", excludeKeywords);
-            const jobsFiltered = jobsParsed.filter((j) => passesFilter(j.title, excludeKeywords));
-            console.log("Filtered jobs:", jobsFiltered);
-
-            if (jobsFiltered.length === 0) {
-                logLine("No job postings found after applying filters (or parser mismatch).");
-            } else {
-                for (const j of jobsFiltered) {
-                    logLine(`${j.title} (${j.location}) - ${j.link}`);
-                }
-            }
-
-            return jobsFiltered;
-        }
-
-        // -----------------------------
-        // Run
+        // Fetch jobs from backend
         // -----------------------------
         async function run() {
             clearUI();
             setBusy(true);
 
             const excludeKeywords = getExcludeKeywords();
+            logLine("Fetching jobs from backend...");
             logLine("Exclude keywords:");
             excludeKeywords.forEach((k) => logLine(`- ${k}`));
 
-            $("portalCount").textContent = String(job_portal_urls.length);
-
-            let totalJobs = 0;
-            let errors = 0;
-
-            // Sequential to be polite to portals and easier to debug
-            for (const portal of job_portal_urls) {
-                try {
-                    const jobs = await fetchPortal(portal, excludeKeywords);
-                    totalJobs += jobs.length;
-                    renderPortalCard({ name: portal.name, url: portal.url, jobs });
-                } catch (e) {
-                    errors += 1;
-                    const msg = e?.message ? String(e.message) : String(e);
-                    logLine(`ERROR: ${msg}`);
-                    renderPortalCard({ name: portal.name, url: portal.url, jobs: [], error: msg });
+            try {
+                // Call backend API with exclude keywords as query parameter
+                const excludeParam = excludeKeywords.join(',');
+                const apiUrl = `/api/jobs?exclude=${encodeURIComponent(excludeParam)}`;
+                
+                logLine(`\nGET ${apiUrl}`);
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} ${response.statusText}`);
                 }
-
-                $("jobCount").textContent = String(totalJobs);
-                $("errorCount").textContent = String(errors);
+                
+                const data = await response.json();
+                
+                logLine(`\nReceived data from backend:`);
+                logLine(`- Portals: ${data.summary.totalPortals}`);
+                logLine(`- Total jobs: ${data.summary.totalJobs}`);
+                logLine(`- Errors: ${data.summary.errorCount}`);
+                
+                // Update status
+                $("portalCount").textContent = String(data.summary.totalPortals);
+                $("jobCount").textContent = String(data.summary.totalJobs);
+                $("errorCount").textContent = String(data.summary.errorCount);
+                
+                // Render results for each portal
+                for (const portal of data.portals) {
+                    logLine(`\n=== ${portal.name} ===`);
+                    if (portal.error) {
+                        logLine(`ERROR: ${portal.error}`);
+                    } else {
+                        logLine(`Jobs found: ${portal.jobs.length}`);
+                        for (const job of portal.jobs) {
+                            logLine(`  ${job.title} (${job.location}) - ${job.link}`);
+                        }
+                    }
+                    renderPortalCard(portal);
+                }
+                
+            } catch (error) {
+                logLine(`\nERROR: ${error.message}`);
+                $("errorCount").textContent = "1";
             }
 
             setBusy(false);
@@ -468,8 +278,7 @@
         // Init
         // -----------------------------
         $("excludeInput").value = default_exclude_keywords.join("\n");
-        $("portalCount").textContent = String(job_portal_urls.length);
-
+        
         $("runBtn").addEventListener("click", run);
         $("clearBtn").addEventListener("click", clearUI);
     </script>
