@@ -29,13 +29,18 @@ async function generateStaticHTML(portalsData) {
   const templatePath = path.join(__dirname, 'templates', 'static.html');
   let html = await fs.readFile(templatePath, 'utf-8');
   
+  // Helper to safely embed JSON in HTML (escape closing script tags)
+  const safeJsonStringify = (data) => {
+    return JSON.stringify(data, null, 2).replace(/</g, '\\u003c');
+  };
+  
   // Replace placeholders with actual data
   html = html.replace('{{LAST_UPDATED}}', escapeHtml(new Date(lastUpdated).toLocaleString()));
   html = html.replace(/{{TOTAL_JOBS}}/g, String(totalJobs));
   html = html.replace('{{PORTAL_COUNT}}', String(portalsData.length));
   html = html.replace('{{ERROR_COUNT}}', String(errorCount));
-  html = html.replace('{{JOBS_DATA}}', JSON.stringify(portalsData, null, 2));
-  html = html.replace('{{DEFAULT_EXCLUDE_KEYWORDS}}', JSON.stringify(DEFAULT_EXCLUDE_KEYWORDS));
+  html = html.replace('{{JOBS_DATA}}', safeJsonStringify(portalsData));
+  html = html.replace('{{DEFAULT_EXCLUDE_KEYWORDS}}', safeJsonStringify(DEFAULT_EXCLUDE_KEYWORDS));
   
   return html;
 }
@@ -45,7 +50,8 @@ async function main() {
   try {
     console.log('Starting job aggregation...');
     
-    // Fetch jobs from all portals (no filtering, returns all jobs)
+    // Fetch jobs from all portals without filtering (pass empty array to get all jobs)
+    // This allows client-side filtering in the static template
     const portalsData = await fetchAllJobs([]);
 
     console.log('Generating static HTML...');

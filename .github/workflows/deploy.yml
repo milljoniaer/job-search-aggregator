@@ -22,16 +22,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Validate server configuration
-        run: |
-          echo "Checking server.js..."
-          node -e "import('./server.js').then(() => console.log('Server configuration is valid')).catch(e => { console.error(e); process.exit(1); })" &
-          sleep 5
-          pkill -f "node.*server.js" || true
-
       - name: Validate static generation
         run: |
           echo "Running static generation..."
           node generate-static.js
           echo "Checking generated output..."
           test -f docs/index.html && echo "Static HTML generated successfully" || exit 1
+      
+      - name: Check server configuration
+        run: |
+          echo "Validating server.js syntax..."
+          node --check server.js
+          echo "Server configuration is valid"
