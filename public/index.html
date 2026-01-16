@@ -147,7 +147,7 @@
                 url: "https://jobs.siemens.com/de_DE/externaljobs/SearchJobs/?42386=%5B812132%5D&42386_format=17546&42387=%5B813141%5D&42387_format=17547&42390=%5B102155%2C102156%5D&42390_format=17550&42394=32346191&42394_format=17553&listFilterMode=1&folderRecordsPerPage=6&",
             },
             {
-                name: "Mc Kinsey",
+                name: "McKinsey",
                 url: "https://gateway.mckinsey.com/apigw-x0cceuow60/v1/api/jobs/search?pageSize=20&start=1&cities=Munich&interest=Analytics,Consulting,Digital,Implementation,Research&functions=Technology&lang=de",
             },
         ];
@@ -243,12 +243,12 @@
                 let location = "N/A";
                 const posLoc = job?.PositionLocation ?? job?.positionLocation ?? job?.locations;
                 if (Array.isArray(posLoc)) {
-                    const cities = posLoc.map((j) => j?.CityName ?? j?.CityName?.Name ?? j?.CityName ?? j?.City ?? j?.city ?? "N/A");
+                    const cities = posLoc.map((j) => j?.CityName?.Name ?? j?.CityName ?? j?.City ?? j?.city ?? "N/A");
                     location = cities.join(", ");
                 } else if (posLoc && typeof posLoc === "object") {
                     location =
-                        posLoc?.CityName ??
                         posLoc?.CityName?.Name ??
+                        posLoc?.CityName ??
                         posLoc?.City ??
                         posLoc?.city ??
                         posLoc?.PositionLocation?.CityName ??
@@ -306,7 +306,7 @@
             header.innerHTML = `
           <div>
             <h3 class="text-sm font-semibold">${escapeHtml(name)}</h3>
-            <p class="mt-1 text-xs text-slate-400 break-all line-clamp-1">${escapeHtml(url)}</p>
+            <p class="mt-1 text-xs text-slate-400 break-all line-clamp-1" title="${escapeHtml(url)}">${escapeHtml(url)}</p>
           </div>
           <span class="shrink-0 rounded-full border border-white/10 bg-slate-900/40 px-2 py-1 text-xs text-slate-300">
             ${error ? "Error" : `${jobs.length} jobs`}

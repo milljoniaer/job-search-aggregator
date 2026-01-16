@@ -28,6 +28,25 @@ app.get('/api/proxy', async (req, res) => {
     });
   }
 
+  // Validate the URL format
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(targetUrl);
+    
+    // Only allow HTTP and HTTPS protocols
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({
+        error: 'Invalid URL protocol',
+        message: 'Only HTTP and HTTPS protocols are supported'
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      error: 'Invalid URL format',
+      message: 'Please provide a valid URL'
+    });
+  }
+
   try {
     console.log(`Proxying request to: ${targetUrl}`);
 
