@@ -95,7 +95,7 @@ function parseJobsFromHtml(htmlText, baseUrl) {
     const href = a?.getAttribute("href") || null;
     
     const locNode = node.querySelector(".list-item-jobCity");
-    const location = locNode?.textContent?.trim() || "Munich";
+    const location = locNode?.textContent?.trim() || "N/A";
     
     let link = null;
     if (href) {
@@ -142,12 +142,8 @@ app.get('/api/jobs', async (req, res) => {
     
     console.log('Fetching jobs with exclude keywords:', excludeKeywords);
     
-    const results = [];
-    let totalJobs = 0;
-    let errorCount = 0;
-    
-    // Fetch jobs from all portals
-    for (const portal of JOB_PORTAL_URLS) {
+    // Fetch jobs from all portals concurrently
+    const fetchPromises = JOB_PORTAL_URLS.map(async (portal) => {
       try {
         console.log(`Fetching from ${portal.name}...`);
         
@@ -189,28 +185,32 @@ app.get('/api/jobs', async (req, res) => {
         // Apply filters
         const jobsFiltered = jobsParsed.filter((j) => passesFilter(j.title, excludeKeywords));
         
-        totalJobs += jobsFiltered.length;
+        console.log(`${portal.name}: ${jobsFiltered.length} jobs (${jobsParsed.length} before filter)`);
         
-        results.push({
+        return {
           name: portal.name,
           url: portal.url,
           jobs: jobsFiltered,
           error: null
-        });
-        
-        console.log(`${portal.name}: ${jobsFiltered.length} jobs (${jobsParsed.length} before filter)`);
+        };
         
       } catch (error) {
         console.error(`Error fetching from ${portal.name}:`, error.message);
-        errorCount++;
-        results.push({
+        return {
           name: portal.name,
           url: portal.url,
           jobs: [],
           error: error.message
-        });
+        };
       }
-    }
+    });
+    
+    // Wait for all portals to complete
+    const results = await Promise.all(fetchPromises);
+    
+    // Calculate summary
+    const totalJobs = results.reduce((sum, r) => sum + r.jobs.length, 0);
+    const errorCount = results.filter(r => r.error !== null).length;
     
     res.json({
       portals: results,
