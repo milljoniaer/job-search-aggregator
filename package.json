@@ -1,0 +1,25 @@
+{
+  "name": "job-search-aggregator",
+  "version": "1.0.0",
+  "description": "A job portal aggregator with Express.js backend and static frontend",
+  "main": "server.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "job-search",
+    "aggregator",
+    "express",
+    "cors-proxy"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
