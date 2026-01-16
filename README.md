@@ -1,11 +1,12 @@
 # Job Search Aggregator
 
-A modern job portal aggregator with an Express.js backend proxy and a client-side web interface. This application aggregates job listings from multiple portals and provides filtering capabilities.
+A modern job portal aggregator with dual modes: an Express.js backend for real-time aggregation and a static pre-fetched version for GitHub Pages.
 
 ## Features
 
-- **Express.js Backend**: Server-side CORS proxy to bypass cross-origin restrictions
-- **Static Frontend**: Beautiful, responsive UI built with Tailwind CSS
+- **Express.js Backend**: Real-time server-side job aggregation with `/api/jobs` endpoint
+- **Static Pre-fetched Mode**: Daily automated job fetching at 7 AM UTC with client-side filtering
+- **Beautiful UI**: Responsive interface built with Tailwind CSS
 - **Job Aggregation**: Fetches jobs from multiple portals (Porsche Consulting, MHP, BCG Platinion, Siemens Advarta, McKinsey)
 - **Smart Parsing**: Automatically detects and parses JSON and HTML responses
 - **Keyword Filtering**: Exclude unwanted job postings based on keywords
@@ -13,7 +14,9 @@ A modern job portal aggregator with an Express.js backend proxy and a client-sid
 
 ## Live Demo
 
-Visit the live application at: [https://milljoniaer.github.io/job-search-aggregator/](https://milljoniaer.github.io/job-search-aggregator/)
+Visit the live static application at: [https://milljoniaer.github.io/job-search-aggregator/](https://milljoniaer.github.io/job-search-aggregator/)
+
+*The static version is updated daily at 7 AM UTC with fresh job data.*
 
 ## Local Development
 
@@ -49,30 +52,82 @@ To run in production mode:
 npm start
 ```
 
+### Generate Static HTML
+
+To manually generate the static HTML file with pre-fetched job data:
+```bash
+npm run generate-static
+```
+
+This will create a `docs/index.html` file with all job data embedded for client-side filtering.
+
+## Two Deployment Modes
+
+### 1. Static Mode (GitHub Pages)
+
+The static version is automatically updated daily at **7:00 AM UTC** via GitHub Actions:
+- Fetches jobs from all portals
+- Generates a static HTML file with embedded data
+- Deploys to GitHub Pages
+- Allows client-side filtering without a backend server
+- Perfect for simple deployment without server costs
+
+**Workflow**: `.github/workflows/static-jobs.yml`
+
+### 2. Dynamic Mode (Express Server)
+
+Run the Express server locally or deploy it for real-time job aggregation:
+- Fetches jobs on-demand when users click "Run"
+- Backend-powered filtering via `/api/jobs` endpoint
+- Always shows the latest job listings
+- Requires Node.js server
+
 ## API Documentation
 
-### Proxy Endpoint
+### Jobs Endpoint
 
-**Endpoint**: `/api/proxy`
+**Endpoint**: `/api/jobs`
 
 **Method**: GET
 
 **Query Parameters**:
-- `url` (required): The URL to proxy
+- `exclude` (optional): Comma-separated list of keywords to exclude from job titles
 
-**Description**: Fetches content from external URLs server-side, bypassing CORS restrictions.
+**Description**: Fetches jobs from all portals, applies filters, and returns aggregated results.
 
 **Example**:
 ```bash
-curl "http://localhost:3000/api/proxy?url=https://example.com/api/jobs"
+curl "http://localhost:3000/api/jobs?exclude=Senior,Lead,Expert"
 ```
 
-**Response**: Returns the content from the proxied URL with appropriate headers.
+**Response**:
+```json
+{
+  "portals": [
+    {
+      "name": "Portal Name",
+      "url": "https://...",
+      "jobs": [
+        {
+          "title": "Job Title",
+          "location": "Location",
+          "link": "https://..."
+        }
+      ],
+      "error": null
+    }
+  ],
+  "summary": {
+    "totalPortals": 6,
+    "totalJobs": 25,
+    "errorCount": 0,
+    "excludeKeywords": ["Senior", "Lead", "Expert"]
+  }
+}
+```
 
 **Error Responses**:
-- `400 Bad Request`: Missing `url` parameter
-- `500 Internal Server Error`: Proxy request failed
-- `<status>`: Forwards status from the proxied URL if it fails
+- `500 Internal Server Error`: Failed to fetch jobs
 
 ## Environment Variables
 
@@ -85,16 +140,20 @@ PORT=8080 npm start
 
 ## Using the Application
 
-### Without Proxy (GitHub Pages)
+### Static Version (GitHub Pages)
 
-When deployed to GitHub Pages, the application works as a purely client-side app. Most job portals will block requests due to CORS restrictions. This is expected behavior.
+Visit [https://milljoniaer.github.io/job-search-aggregator/](https://milljoniaer.github.io/job-search-aggregator/) to use the static version with pre-fetched data:
+- Job data is updated daily at 7 AM UTC
+- All filtering happens in your browser
+- No backend server required
+- Works offline after initial page load
 
-### With Proxy (Local Server)
+### Dynamic Version (Local Server)
 
 1. Start the Express server locally: `npm start`
 2. Open the web interface at `http://localhost:3000`
-3. In the "Proxy (optional)" field, enter: `http://localhost:3000/api/proxy?url={URL}`
-4. Click "Run" to fetch and aggregate job listings
+3. Click "Run" to fetch fresh job listings in real-time
+4. Use the keyword filter to exclude unwanted positions
 
 ### Filtering
 
@@ -111,19 +170,23 @@ You can customize these keywords in the "Exclude keywords" textarea (one per lin
 
 ## Deployment
 
-### GitHub Pages
+### GitHub Pages (Static)
 
-The project automatically deploys to GitHub Pages when changes are pushed to the `main` branch. The GitHub Actions workflow:
+The static version is automatically generated and deployed daily at 7 AM UTC via GitHub Actions workflow (`.github/workflows/static-jobs.yml`):
 
-1. Checks out the code
-2. Sets up Node.js environment
-3. Installs dependencies
-4. Uploads the `public` directory as an artifact
-5. Deploys to GitHub Pages
+1. Fetches jobs from all portals
+2. Generates `docs/index.html` with embedded job data
+3. Deploys to GitHub Pages
 
-### Manual Deployment
+You can also manually trigger the workflow from the Actions tab.
 
-To deploy manually, push to the main branch or trigger the workflow from the Actions tab in GitHub.
+### Manual Static Generation
+
+To manually generate and deploy:
+```bash
+npm run generate-static
+# Then commit and push the docs/ folder
+```
 
 ## Project Structure
 
@@ -131,18 +194,22 @@ To deploy manually, push to the main branch or trigger the workflow from the Act
 job-search-aggregator/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml          # GitHub Actions workflow
+│       ├── deploy.yml           # Original deployment workflow
+│       └── static-jobs.yml      # Daily job fetch & static generation
 ├── public/
-│   └── index.html              # Frontend application
-├── .gitignore                  # Git ignore rules
-├── package.json                # Node.js dependencies and scripts
-├── server.js                   # Express.js server
-└── README.md                   # This file
+│   └── index.html               # Dynamic frontend (with backend)
+├── docs/                        # Generated static site (for GitHub Pages)
+│   └── index.html               # Auto-generated with job data
+├── .gitignore                   # Git ignore rules
+├── package.json                 # Node.js dependencies and scripts
+├── server.js                    # Express.js server
+├── generate-static.js           # Static HTML generator script
+└── README.md                    # This file
 ```
 
 ## Technologies Used
 
-- **Backend**: Express.js, Node.js native fetch API
+- **Backend**: Express.js, Node.js native fetch API, jsdom
 - **Frontend**: Vanilla JavaScript, Tailwind CSS
 - **Deployment**: GitHub Actions, GitHub Pages
 - **Build Tools**: Node.js, npm
