@@ -41,7 +41,7 @@ const DEFAULT_EXCLUDE_KEYWORDS = ["Senior ", "Lead ", "Security", "Experienced "
 // Helper functions for parsing jobs (copied from server.js)
 function parseJobsFromJson(data) {
   const jobs = [];
-  
+
   const searchResult = data?.SearchResult ?? null;
   const searchResults =
     searchResult?.SearchResultItems ??
@@ -50,14 +50,14 @@ function parseJobsFromJson(data) {
     data?.items ??
     data?.SearchResultItems ??
     [];
-  
+
   if (!Array.isArray(searchResults)) return jobs;
-  
+
   for (const obj of searchResults) {
     const job = obj?.MatchedObjectDescriptor ?? obj ?? {};
-    
+
     const title = job?.PositionTitle ?? job?.title ?? job?.jobTitle ?? "N/A";
-    
+
     let location = "N/A";
     const posLoc = job?.PositionLocation ?? job?.positionLocation ?? job?.locations;
     if (Array.isArray(posLoc)) {
@@ -72,12 +72,12 @@ function parseJobsFromJson(data) {
         posLoc?.PositionLocation?.CityName ??
         "N/A";
     }
-    
+
     const link = job?.PositionURI ?? job?.jobApplyURL ?? job?.url ?? job?.applyUrl ?? "N/A";
-    
+
     jobs.push({ title, location, link });
   }
-  
+
   return jobs;
 }
 
@@ -85,17 +85,17 @@ function parseJobsFromHtml(htmlText, baseUrl) {
   const jobs = [];
   const dom = new JSDOM(htmlText);
   const document = dom.window.document;
-  
+
   const jobNodes = document.querySelectorAll(".listSingleColumnItemTitle, .article__header");
-  
+
   jobNodes.forEach((node) => {
     const a = node.querySelector("a");
     const title = a?.textContent?.trim() || node.textContent?.trim() || "N/A";
     const href = a?.getAttribute("href") || null;
-    
+
     const locNode = node.querySelector(".list-item-jobCity");
     const location = locNode?.textContent?.trim() || "N/A";
-    
+
     let link = null;
     if (href) {
       try {
@@ -104,10 +104,10 @@ function parseJobsFromHtml(htmlText, baseUrl) {
         link = href;
       }
     }
-    
+
     jobs.push({ title, location, link: link || "N/A" });
   });
-  
+
   return jobs;
 }
 
@@ -119,11 +119,11 @@ function contentTypeLooksJson(ct) {
 // Fetch jobs from all portals
 async function fetchAllJobs() {
   console.log('Fetching jobs from all portals...');
-  
+
   const fetchPromises = JOB_PORTAL_URLS.map(async (portal) => {
     try {
       console.log(`Fetching from ${portal.name}...`);
-      
+
       const response = await fetch(portal.url, {
         method: 'GET',
         headers: {
@@ -132,21 +132,21 @@ async function fetchAllJobs() {
           'Accept-Language': 'en-US,en;q=0.9'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
       }
-      
+
       const contentType = response.headers.get('content-type') || '';
       let jobsParsed = [];
-      
+
       if (contentTypeLooksJson(contentType)) {
         const data = await response.json();
         jobsParsed = parseJobsFromJson(data);
       } else {
         const text = await response.text();
         const trimmed = text.trim();
-        
+
         if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
           try {
             const data = JSON.parse(trimmed);
@@ -158,16 +158,16 @@ async function fetchAllJobs() {
           jobsParsed = parseJobsFromHtml(text, portal.url);
         }
       }
-      
+
       console.log(`${portal.name}: ${jobsParsed.length} jobs`);
-      
+
       return {
         name: portal.name,
         url: portal.url,
         jobs: jobsParsed,
         error: null
       };
-      
+
     } catch (error) {
       console.error(`Error fetching from ${portal.name}:`, error.message);
       return {
@@ -178,7 +178,7 @@ async function fetchAllJobs() {
       };
     }
   });
-  
+
   const results = await Promise.all(fetchPromises);
   return results;
 }
@@ -187,7 +187,7 @@ async function fetchAllJobs() {
 async function generateStaticHTML(portalsData) {
   const lastUpdated = new Date().toISOString();
   const totalJobs = portalsData.reduce((sum, p) => sum + p.jobs.length, 0);
-  
+
   // Escape HTML
   const escapeHtml = (s) => String(s)
     .replaceAll("&", "&amp;")
@@ -195,7 +195,7 @@ async function generateStaticHTML(portalsData) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-  
+
   const html = `<!doctype html>
 <html lang="en">
 
@@ -309,7 +309,7 @@ async function generateStaticHTML(portalsData) {
 
         function getExcludeKeywords() {
             const raw = $("excludeInput").value
-                .split("\n")
+                .split("\\n")
                 .filter(Boolean);
             return raw.length ? raw : default_exclude_keywords;
         }
@@ -414,12 +414,12 @@ async function generateStaticHTML(portalsData) {
         }
 
         function clearFilters() {
-            $("excludeInput").value = default_exclude_keywords.join("\n");
+            $("excludeInput").value = default_exclude_keywords.join("\\n");
             applyFilters();
         }
 
         // Initialize
-        $("excludeInput").value = default_exclude_keywords.join("\n");
+        $("excludeInput").value = default_exclude_keywords.join("\\n");
         $("filterBtn").addEventListener("click", applyFilters);
         $("clearBtn").addEventListener("click", clearFilters);
         
@@ -438,14 +438,14 @@ async function main() {
   try {
     console.log('Starting job aggregation...');
     const portalsData = await fetchAllJobs();
-    
+
     console.log('Generating static HTML...');
     const html = await generateStaticHTML(portalsData);
-    
+
     const outputPath = path.join(__dirname, 'docs', 'index.html');
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, html, 'utf-8');
-    
+
     console.log(`Static HTML generated at: ${outputPath}`);
     console.log('Done!');
   } catch (error) {
