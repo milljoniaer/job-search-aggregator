@@ -309,7 +309,7 @@ async function generateStaticHTML(portalsData) {
 
         function getExcludeKeywords() {
             const raw = $("excludeInput").value
-                .split("\n")
+                .split("\\n")
                 .filter(Boolean);
             return raw.length ? raw : default_exclude_keywords;
         }
@@ -414,12 +414,12 @@ async function generateStaticHTML(portalsData) {
         }
 
         function clearFilters() {
-            $("excludeInput").value = default_exclude_keywords.join("\n");
+            $("excludeInput").value = default_exclude_keywords.join("\\n");
             applyFilters();
         }
 
         // Initialize
-        $("excludeInput").value = default_exclude_keywords.join("\n");
+        $("excludeInput").value = default_exclude_keywords.join("\\n");
         $("filterBtn").addEventListener("click", applyFilters);
         $("clearBtn").addEventListener("click", clearFilters);
         
