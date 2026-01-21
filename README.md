@@ -2,6 +2,8 @@
 
 A modern job portal aggregator with dual modes: an Express.js backend for real-time aggregation and a static pre-fetched version for GitHub Pages.
 
+*Disclaimer: This webpage & crawler is tailored to my specific job search needs and companies I am interested in. A complete reuse for someone else is thus probably not possible.*
+
 ## Features
 
 - **Express.js Backend**: Real-time server-side job aggregation with `/api/jobs` endpoint
@@ -137,90 +139,6 @@ Example:
 ```bash
 PORT=8080 npm start
 ```
-
-## Using the Application
-
-### Static Version (GitHub Pages)
-
-Visit [https://milljoniaer.github.io/job-search-aggregator/](https://milljoniaer.github.io/job-search-aggregator/) to use the static version with pre-fetched data:
-- Job data is updated daily at 7 AM UTC
-- All filtering happens in your browser
-- No backend server required
-- Works offline after initial page load
-
-### Dynamic Version (Local Server)
-
-1. Start the Express server locally: `npm start`
-2. Open the web interface at `http://localhost:3000`
-3. Click "Run" to fetch fresh job listings in real-time
-4. Use the keyword filter to exclude unwanted positions
-
-### Filtering
-
-The application includes default exclude keywords:
-- Senior
-- Lead
-- Security
-- Experienced
-- Expert
-- Praktikum
-- Intern
-
-You can customize these keywords in the "Exclude keywords" textarea (one per line).
-
-## Deployment
-
-### GitHub Pages (Static)
-
-The static version is automatically generated and deployed daily at 7 AM UTC via GitHub Actions workflow (`.github/workflows/static-jobs.yml`):
-
-1. Fetches jobs from all portals
-2. Generates `docs/index.html` with embedded job data
-3. Deploys to GitHub Pages
-
-You can also manually trigger the workflow from the Actions tab.
-
-### Manual Static Generation
-
-To manually generate and deploy:
-```bash
-npm run generate-static
-# Then commit and push the docs/ folder
-```
-
-## Project Structure
-
-```
-job-search-aggregator/
-├── .github/
-│   └── workflows/
-│       ├── deploy.yml           # Original deployment workflow
-│       └── static-jobs.yml      # Daily job fetch & static generation
-├── public/
-│   └── index.html               # Dynamic frontend (with backend)
-├── docs/                        # Generated static site (for GitHub Pages)
-│   └── index.html               # Auto-generated with job data
-├── .gitignore                   # Git ignore rules
-├── package.json                 # Node.js dependencies and scripts
-├── server.js                    # Express.js server
-├── generate-static.js           # Static HTML generator script
-└── README.md                    # This file
-```
-
-## Technologies Used
-
-- **Backend**: Express.js, Node.js native fetch API, jsdom
-- **Frontend**: Vanilla JavaScript, Tailwind CSS
-- **Deployment**: GitHub Actions, GitHub Pages
-- **Build Tools**: Node.js, npm
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -am 'Add new feature'`
-4. Push to the branch: `git push origin feature/my-feature`
-5. Submit a pull request
 
 ## License
 
